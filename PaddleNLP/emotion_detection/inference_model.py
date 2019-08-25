@@ -53,6 +53,45 @@ def do_save_inference_model(args):
     print("save inference model at %s" % (args.inference_model_dir))
 
 
+def predict_for_online(args):
+    infer_file = os.path.join(args.data_dir, 'infer.tsv')
+    infer_reader = utils.prepare_data(infer_file, args.vocab_path, args.batch_size)
+    if args.use_cuda:
+        dev_count = fluid.core.get_cuda_device_count()
+        place = fluid.CUDAPlace(0)
+    else:
+        dev_count = int(os.environ.get('CPU_NUM', 1))
+        place = fluid.CPUPlace()
+
+    test_prog = fluid.default_main_program()
+    startup_prog = fluid.default_startup_program()
+
+    with fluid.program_guard(test_prog, startup_prog):
+        with fluid.unique_name.guard():
+            infer_pyreader, probs, feed_target_names = create_model(
+                args,
+                pyreader_name='infer_reader',
+                num_labels=args.num_labels,
+                is_prediction=True)
+
+    test_prog = test_prog.clone(for_test=True)
+    exe = fluid.Executor(place)
+    exe.run(startup_prog)
+
+    assert (args.inference_model_dir)
+    infer_program, feed_names, fetch_targets = fluid.io.load_inference_model(
+            dirname=args.inference_model_dir,
+            executor=exe,
+            model_filename="model.pdmodel",
+            params_filename="params.pdparams")
+
+    for sample in infer_reader():
+	pred = exe.run(infer_program,
+                       feed={feed_names[0]:utils.data2tensor(sample,place)},
+                       fetch_list=fetch_targets,
+                       return_numpy=True)
+	print(pred)
+
 if __name__ == "__main__":
     args = PDConfig(json_file="./config.json")
     args.build()
@@ -61,4 +100,5 @@ if __name__ == "__main__":
     if args.do_save_inference_model:
         do_save_inference_model(args)
     else:
-        raise ValueError("`do_save_inference_model` must be True.")
+        predict_for_online(args)
+        #raise ValueError("`do_save_inference_model` must be True.")
