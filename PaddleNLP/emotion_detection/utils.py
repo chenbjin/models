@@ -22,9 +22,8 @@ def init_inference_model(exe, inference_model_path):
         raise Warning("The inference model path do not exist.")
         return False
 
-    [inference_program, feed_names, fetch_targets] = 
-        fluid.io.load_inference_model(
-            dirname=inference_model_path, 
+    [inference_program, feed_names, fetch_targets] = fluid.io.load_inference_model(
+            dirname=inference_model_path,
             executor=exe,
             model_filename="model.pdmodel",
             params_filename="params.pdparams")
@@ -116,3 +115,35 @@ def load_vocab(file_path):
                 wid += 1
     vocab["<unk>"] = len(vocab)
     return vocab
+
+def to_lodtensor(data, place):
+    """
+    convert ot LODtensor
+    """
+    seq_lens = [len(seq) for seq in data]
+    cur_len = 0
+    lod = [cur_len]
+    for l in seq_lens:
+        cur_len += l
+        lod.append(cur_len)
+    flattened_data = np.concatenate(data, axis=0).astype("int64")
+    flattened_data = flattened_data.reshape([len(flattened_data), 1])
+    res = fluid.LoDTensor()
+    res.set(flattened_data, place)
+    res.set_lod([lod])
+    return res
+
+def data2tensor(data, place):
+    input_seq = to_lodtensor(list(map(lambda x: x[0], data)), place)
+    return input_seq
+
+def prepare_data(data_path, vocab_path, batch_size):
+    sample_num = {'infer':-1}
+    assert os.path.exists(
+        data_path), "The given data does not exist."
+    assert os.path.exists(
+        vocab_path), "The given word dictionary dose not exist."
+    vocab = load_vocab(vocab_path)
+    reader = paddle.batch(data_reader(data_path, vocab, sample_num, 'infer'),
+                          batch_size)
+    return reader
