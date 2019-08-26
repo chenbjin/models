@@ -53,7 +53,7 @@ def do_save_inference_model(args):
     print("save inference model at %s" % (args.inference_model_dir))
 
 
-def predict_for_online(args):
+def test_inference_model(args):
     infer_file = os.path.join(args.data_dir, 'infer.tsv')
     infer_reader = utils.prepare_data(infer_file, args.vocab_path, args.batch_size)
     if args.use_cuda:
@@ -87,9 +87,9 @@ def predict_for_online(args):
 
     for sample in infer_reader():
 	pred = exe.run(infer_program,
-                       feed={feed_names[0]:utils.data2tensor(sample,place)},
-                       fetch_list=fetch_targets,
-                       return_numpy=True)
+                    feed={feed_names[0]:utils.data2tensor(sample,place)},
+                    fetch_list=fetch_targets,
+                    return_numpy=True)
 	print(pred)
 
 if __name__ == "__main__":
@@ -100,5 +100,5 @@ if __name__ == "__main__":
     if args.do_save_inference_model:
         do_save_inference_model(args)
     else:
-        predict_for_online(args)
+        test_inference_model(args)
         #raise ValueError("`do_save_inference_model` must be True.")

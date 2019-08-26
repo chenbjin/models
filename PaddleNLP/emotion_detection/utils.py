@@ -15,21 +15,6 @@ import paddle.fluid as fluid
 import numpy as np
 
 
-def init_inference_model(exe, inference_model_path):
-    assert isinstance(inference_model_path, str)
-
-    if not os.path.exists(inference_model_path):
-        raise Warning("The inference model path do not exist.")
-        return False
-
-    [inference_program, feed_names, fetch_targets] = fluid.io.load_inference_model(
-            dirname=inference_model_path,
-            executor=exe,
-            model_filename="model.pdmodel",
-            params_filename="params.pdparams")
-    return inference_program
-
-
 def init_checkpoint(exe, init_checkpoint_path, main_program):
     """
     Init CheckPoint
@@ -116,6 +101,7 @@ def load_vocab(file_path):
     vocab["<unk>"] = len(vocab)
     return vocab
 
+
 def to_lodtensor(data, place):
     """
     convert ot LODtensor
@@ -133,9 +119,11 @@ def to_lodtensor(data, place):
     res.set_lod([lod])
     return res
 
+
 def data2tensor(data, place):
     input_seq = to_lodtensor(list(map(lambda x: x[0], data)), place)
     return input_seq
+
 
 def prepare_data(data_path, vocab_path, batch_size):
     sample_num = {'infer':-1}
