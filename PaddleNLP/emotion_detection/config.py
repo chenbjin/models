@@ -65,6 +65,7 @@ class PDConfig(object):
         model_g = ArgumentGroup(parser, "Model config options", "")
         model_g.add_arg("model_type", str, "cnn_net", "Model type to run the task.", 
             choices=["bow_net","cnn_net", "lstm_net", "bilstm_net", "gru_net", "textcnn_net"])
+        model_g.add_arg("num_labels", int, 3 , "Number of labels for classification")
         model_g.add_arg("init_checkpoint", str, None, "Init checkpoint to resume training from.")
         model_g.add_arg("save_checkpoint_dir", str, None, "Directory path to save checkpoints")
         model_g.add_arg("inference_model_dir", str, None, "Directory path to save inference model")
@@ -87,7 +88,7 @@ class PDConfig(object):
 
         log_g = ArgumentGroup(parser, "Logging options", "")
         log_g.add_arg("verbose", bool, False, "Whether to output verbose log")
-        log_g.add_arg("task_name", str, None, "The name of task to perform sentiment classification.")
+        log_g.add_arg("task_name", str, None, "The name of task to perform emotion detection")
         log_g.add_arg('enable_ce', bool, False, 'If set, run the task with continuous evaluation logs.')
 
         custom_g = ArgumentGroup(parser, "Customize options", "")

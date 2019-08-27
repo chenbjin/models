@@ -219,11 +219,11 @@ sh run.sh save_inference_model
 
 1. 定义自己的网络结构
 
-  用户可以在 ```models/classification/nets.py``` 中，定义自己的模型，只需要增加新的函数即可。假设用户自定义的函数名为```user_net```
+   用户可以在 ```models/classification/nets.py``` 中，定义自己的模型，只需要增加新的函数即可。假设用户自定义的函数名为```user_net```
 
 2. 更改模型配置
 
-  在 ```config.json``` 中需要将 ```model_type``` 改为用户自定义的 ```user_net```
+   在 ```config.json``` 中需要将 ```model_type``` 改为用户自定义的 ```user_net```
 
 3. 模型训练
 
@@ -279,7 +279,7 @@ Final validation result:
 #--init_checkpoint./save/step_907
 sh run_ernie.sh infer
 
-''‘
+'''
 # 输出结果示例
 Load model from ./save_models/ernie/step_907
 Final test result:
@@ -287,7 +287,7 @@ Final test result:
 0      0.976585      0.021535      0.001880
 1      0.000572      0.999153      0.000275
 1      0.001113      0.998502      0.000385
-''’
+'''
 ```
 
 ### 基于 PaddleHub 加载 ERNIE 进行 Finetune

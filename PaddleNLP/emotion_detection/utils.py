@@ -102,6 +102,16 @@ def load_vocab(file_path):
     return vocab
 
 
+def print_arguments(args):
+    """
+    print arguments
+    """
+    print('-----------  Configuration Arguments -----------')
+    for arg, value in sorted(six.iteritems(vars(args))):
+        print('%s: %s' % (arg, value))
+    print('------------------------------------------------')
+
+
 def to_lodtensor(data, place):
     """
     convert ot LODtensor
