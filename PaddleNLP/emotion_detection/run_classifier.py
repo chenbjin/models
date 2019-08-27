@@ -281,7 +281,7 @@ def main(args):
                                 "dev")
 
             except fluid.core.EOFException:
-                save_path = os.path.join(args.output_dir, "step_" + str(steps))
+                save_path = os.path.join(args.save_checkpoint_dir, "step_" + str(steps))
                 fluid.io.save_persistables(exe, save_path, train_program)
                 train_pyreader.reset()
                 break
