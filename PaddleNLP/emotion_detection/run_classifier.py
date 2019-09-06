@@ -28,24 +28,23 @@ def create_model(args,
                  num_labels,
                  is_prediction=False):
     """
-    Create Model for sentiment classification
+    Create Model for Emotion Detection
     """
+    data = fluid.layers.data(name="words", shape=[1], dtype="int64", lod_level=1)
+    label = fluid.layers.data(name="label", shape=[1], dtype="int64")
+
     if is_prediction:
-        pyreader = fluid.layers.py_reader(
+        pyreader = fluid.io.PyReader(
+            feed_list=[data],
             capacity=16,
-            shapes=[[-1, 1]],
-            dtypes=['int64'],
-            lod_levels=[1],
-            name=pyreader_name,
-            use_double_buffer=False)
+            iterable=False,
+            return_list=False)
     else:
-        pyreader = fluid.layers.py_reader(
+        pyreader = fluid.io.PyReader(
+            feed_list=[data, label],
             capacity=16,
-            shapes=([-1, 1], [-1, 1]),
-            dtypes=('int64', 'int64'),
-            lod_levels=(1, 0),
-            name=pyreader_name,
-            use_double_buffer=False)
+            iterable=False,
+            return_list=False)
 
     if args.model_type == "cnn_net":
         network = nets.cnn_net
@@ -63,11 +62,9 @@ def create_model(args,
         raise ValueError("Unknown network type!")
 
     if is_prediction:
-        data = fluid.layers.read_file(pyreader)
         probs = network(data, None, args.vocab_size, class_dim=num_labels, is_prediction=True)
         return pyreader, probs, [data.name]
 
-    data, label = fluid.layers.read_file(pyreader)
     avg_loss, probs = network(data, label, args.vocab_size, class_dim=num_labels)
     num_seqs = fluid.layers.create_tensor(dtype='int64')
     accuracy = fluid.layers.accuracy(input=probs, label=label, total=num_seqs)
@@ -177,6 +174,11 @@ def main(args):
                 (lower_mem, upper_mem, unit))
 
     if args.do_val:
+        test_data_generator = processor.data_generator(
+            batch_size=args.batch_size,
+            phase='dev',
+            epoch=1)
+
         test_prog = fluid.Program()
         with fluid.program_guard(test_prog, startup_prog):
             with fluid.unique_name.guard():
@@ -188,6 +190,11 @@ def main(args):
         test_prog = test_prog.clone(for_test=True)
 
     if args.do_infer:
+        infer_data_generator = processor.data_generator(
+            batch_size=args.batch_size,
+            phase='infer',
+            epoch=1)
+
         test_prog = fluid.Program()
         with fluid.program_guard(test_prog, startup_prog):
             with fluid.unique_name.guard():
@@ -217,11 +224,15 @@ def main(args):
 
     if args.do_train:
         train_exe = exe
-        train_pyreader.decorate_paddle_reader(train_data_generator)
+        train_pyreader.decorate_sample_list_generator(train_data_generator)
     else:
         train_exe = None
-    if args.do_val or args.do_infer:
+    if args.do_val:
         test_exe = exe
+        test_pyreader.decorate_sample_list_generator(test_data_generator)
+    if args.do_infer:
+        test_exe = exe
+        infer_pyreader.decorate_sample_list_generator(infer_data_generator)
 
     if args.do_train:
         train_pyreader.start()
@@ -271,11 +282,6 @@ def main(args):
                 if steps % args.validation_steps == 0:
                     # evaluate on dev set
                     if args.do_val:
-                        test_pyreader.decorate_paddle_reader(
-                            processor.data_generator(
-                                batch_size=args.batch_size,
-                                phase='dev',
-                                epoch=1))
                         evaluate(test_exe, test_prog, test_pyreader,
                                 [loss.name, accuracy.name, num_seqs.name],
                                 "dev")
@@ -306,11 +312,6 @@ def main(args):
 
     # evaluate on test set
     if not args.do_train and args.do_val:
-        test_pyreader.decorate_paddle_reader(
-            processor.data_generator(
-                batch_size=args.batch_size,
-                phase='test',
-                epoch=1))
         print("Final test result:")
         evaluate(test_exe, test_prog, test_pyreader,
                 [loss.name, accuracy.name, num_seqs.name],
@@ -318,11 +319,7 @@ def main(args):
 
     # infer
     if args.do_infer:
-        infer_pyreader.decorate_paddle_reader(
-            processor.data_generator(
-                batch_size=args.batch_size,
-                phase='infer',
-                epoch=1))
+        print("Final infer result:")
         infer(test_exe, test_prog, infer_pyreader,
              [probs.name], "infer")
 
