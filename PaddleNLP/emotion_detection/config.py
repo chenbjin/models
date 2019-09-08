@@ -1,3 +1,17 @@
+# Copyright (c) 2019 PaddlePaddle Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """
 EmoTect config
 """
@@ -61,16 +75,16 @@ class PDConfig(object):
         run_type_g.add_arg("do_val", bool, False, "Whether to perform evaluation.")
         run_type_g.add_arg("do_infer", bool, False, "Whether to perform inference.")
         run_type_g.add_arg("do_save_inference_model", bool, False, "Whether to perform save inference model.")
-        
+
         model_g = ArgumentGroup(parser, "Model config options", "")
-        model_g.add_arg("model_type", str, "cnn_net", "Model type to run the task.", 
+        model_g.add_arg("model_type", str, "cnn_net", "Model type to run the task.",
             choices=["bow_net","cnn_net", "lstm_net", "bilstm_net", "gru_net", "textcnn_net"])
         model_g.add_arg("num_labels", int, 3 , "Number of labels for classification")
         model_g.add_arg("init_checkpoint", str, None, "Init checkpoint to resume training from.")
         model_g.add_arg("save_checkpoint_dir", str, None, "Directory path to save checkpoints")
         model_g.add_arg("inference_model_dir", str, None, "Directory path to save inference model")
 
-        
+
         data_g = ArgumentGroup(parser, "Data config options", "")
         data_g.add_arg("data_dir", str, None, "Directory path to training data.")
         data_g.add_arg("vocab_path", str, None, "Vocabulary path.")
@@ -111,8 +125,8 @@ class PDConfig(object):
             with open(file_path, "r") as fin:
                 self.json_config = json.load(fin)
         except Exception as e:
-            raise IOError("Error in parsing json config file '%s'" % file_path)  
-        
+            raise IOError("Error in parsing json config file '%s'" % file_path)
+
         for name in self.json_config:
             # use `six.string_types` but not `str` for compatible with python2 and python3
             if not isinstance(self.json_config[name], (int, float, bool, six.string_types)):
@@ -153,7 +167,7 @@ class PDConfig(object):
         dtype = new_arg[1]
         dvalue = new_arg[2]
         desc = new_arg[3] if len(new_arg) == 4 else "Description is not provided."
-        
+
         self.add_arg(name, dtype, dvalue, desc)
         return self
 

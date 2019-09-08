@@ -192,6 +192,13 @@ sh download_model.sh
 sh run.sh save_inference_model
 ```
 
+同时裁剪后的模型使用方法详见```inference_model.py```，测试命令如下:
+
+```shell
+python inference_model.py 
+```
+
+
 #### 服务器部署
 
 请参考PaddlePaddle官方提供的 [服务器端部署](https://www.paddlepaddle.org.cn/documentation/docs/zh/1.5/advanced_usage/deploy/inference/index_cn.html) 文档进行部署上线。

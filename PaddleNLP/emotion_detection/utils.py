@@ -1,3 +1,17 @@
+# Copyright (c) 2019 PaddlePaddle Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """
 EmoTect utilities.
 """
@@ -13,7 +27,6 @@ import random
 import paddle
 import paddle.fluid as fluid
 import numpy as np
-
 
 def init_checkpoint(exe, init_checkpoint_path, main_program):
     """
@@ -38,11 +51,20 @@ def init_checkpoint(exe, init_checkpoint_path, main_program):
     print("Load model from {}".format(init_checkpoint_path))
 
 
-def data_reader(file_path, word_dict, num_examples, phrase, epoch=1):
+def word2id(word_dict, query):
     """
-    Convert word sequence into slot
+    Convert word sequence into id list
     """
     unk_id = len(word_dict)
+    wids = [word_dict[w] if w in word_dict else unk_id
+            for w in query.strip().split(" ")]
+    return wids
+
+
+def data_reader(file_path, word_dict, num_examples, phrase, epoch=1):
+    """
+    Data reader, which convert word sequence into id list
+    """
     all_data = []
     with io.open(file_path, "r", encoding='utf8') as fin:
         for line in fin:
@@ -50,10 +72,8 @@ def data_reader(file_path, word_dict, num_examples, phrase, epoch=1):
                 continue
             if phrase == "infer":
                 cols = line.strip().split("\t")
-                if len(cols) != 1:
-                    query = cols[-1]
-                wids = [word_dict[x] if x in word_dict else unk_id
-                        for x in query.strip().split(" ")]
+                query = cols[-1] if len(cols) != -1 else cols[0]
+                wids = word2id(word_dict, query)
                 all_data.append((wids,))
             else:
                 cols = line.strip().split("\t")
@@ -61,8 +81,8 @@ def data_reader(file_path, word_dict, num_examples, phrase, epoch=1):
                     sys.stderr.write("[NOTICE] Error Format Line!")
                     continue
                 label = int(cols[0])
-                wids = [word_dict[x] if x in word_dict else unk_id
-                        for x in cols[1].split(" ")]
+                query = cols[1].strip()
+                wids = word2id(word_dict, query)
                 all_data.append((wids, label))
     num_examples[phrase] = len(all_data)
 
@@ -112,36 +132,10 @@ def print_arguments(args):
     print('------------------------------------------------')
 
 
-def to_lodtensor(data, place):
+def query2ids(vocab_path, query):
     """
-    convert ot LODtensor
+    Convert query to id list according to the given vocab
     """
-    seq_lens = [len(seq) for seq in data]
-    cur_len = 0
-    lod = [cur_len]
-    for l in seq_lens:
-        cur_len += l
-        lod.append(cur_len)
-    flattened_data = np.concatenate(data, axis=0).astype("int64")
-    flattened_data = flattened_data.reshape([len(flattened_data), 1])
-    res = fluid.LoDTensor()
-    res.set(flattened_data, place)
-    res.set_lod([lod])
-    return res
-
-
-def data2tensor(data, place):
-    input_seq = to_lodtensor(list(map(lambda x: x[0], data)), place)
-    return input_seq
-
-
-def prepare_data(data_path, vocab_path, batch_size):
-    sample_num = {'infer':-1}
-    assert os.path.exists(
-        data_path), "The given data does not exist."
-    assert os.path.exists(
-        vocab_path), "The given word dictionary dose not exist."
     vocab = load_vocab(vocab_path)
-    reader = paddle.batch(data_reader(data_path, vocab, sample_num, 'infer'),
-                          batch_size)
-    return reader
+    wids = word2id(vocab, query)
+    return wids

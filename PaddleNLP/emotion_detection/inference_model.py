@@ -1,4 +1,22 @@
 # -*- encoding: utf8 -*-
+# Copyright (c) 2019 PaddlePaddle Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import os
 import sys
 sys.path.append("../")
@@ -53,9 +71,7 @@ def do_save_inference_model(args):
     print("save inference model at %s" % (args.inference_model_dir))
 
 
-def test_inference_model(args):
-    infer_file = os.path.join(args.data_dir, 'infer.tsv')
-    infer_reader = utils.prepare_data(infer_file, args.vocab_path, args.batch_size)
+def test_inference_model(args, texts):
     if args.use_cuda:
         dev_count = fluid.core.get_cuda_device_count()
         place = fluid.CUDAPlace(0)
@@ -84,13 +100,18 @@ def test_inference_model(args):
             executor=exe,
             model_filename="model.pdmodel",
             params_filename="params.pdparams")
+    data = []
+    for query in texts:
+        wids = utils.query2ids(args.vocab_path, query)
+        data.append(wids)
+    data_shape = [[len(w) for w in data]]
+    pred = exe.run(infer_program,
+                feed={feed_names[0]:fluid.create_lod_tensor(data, data_shape, place)},
+                fetch_list=fetch_targets,
+                return_numpy=True)
+    for probs in pred[0]:
+        print("%d\t%f\t%f\t%f" % (np.argmax(probs), probs[0], probs[1], probs[2]))
 
-    for sample in infer_reader():
-	pred = exe.run(infer_program,
-                    feed={feed_names[0]:utils.data2tensor(sample,place)},
-                    fetch_list=fetch_targets,
-                    return_numpy=True)
-	print(pred)
 
 if __name__ == "__main__":
     args = PDConfig(json_file="./config.json")
@@ -100,5 +121,6 @@ if __name__ == "__main__":
     if args.do_save_inference_model:
         do_save_inference_model(args)
     else:
-        test_inference_model(args)
-        #raise ValueError("`do_save_inference_model` must be True.")
+        texts = ["我 讨厌 你 ， 哼哼 哼 。 。", "我 喜欢 你 ， 爱 你 哟"]
+        test_inference_model(args, texts)
+
