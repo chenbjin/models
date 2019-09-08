@@ -121,6 +121,6 @@ if __name__ == "__main__":
     if args.do_save_inference_model:
         do_save_inference_model(args)
     else:
-        texts = ["我 讨厌 你 ， 哼哼 哼 。 。", "我 喜欢 你 ， 爱 你 哟"]
+        texts = [u"我 讨厌 你 ， 哼哼 哼 。 。", u"我 喜欢 你 ， 爱 你 哟"]
         test_inference_model(args, texts)
 
