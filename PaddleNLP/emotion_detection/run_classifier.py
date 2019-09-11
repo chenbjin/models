@@ -188,10 +188,16 @@ def main(args):
                 (lower_mem, upper_mem, unit))
 
     if args.do_val:
-        test_data_generator = processor.data_generator(
-            batch_size=args.batch_size,
-            phase='dev',
-            epoch=1)
+        if args.do_train:
+            test_data_generator = processor.data_generator(
+                batch_size=args.batch_size,
+                phase='dev',
+                epoch=1)
+        else:
+            test_data_generator = processor.data_generator(
+                batch_size=args.batch_size,
+                phase='test',
+                epoch=1)
 
         test_prog = fluid.Program()
         with fluid.program_guard(test_prog, startup_prog):
@@ -301,6 +307,12 @@ def main(args):
                                 "dev")
 
             except fluid.core.EOFException:
+                print("final step: %d " % steps)
+                if args.do_val:
+                    evaluate(test_exe, test_prog, test_pyreader,
+                        [loss.name, accuracy.name, num_seqs.name],
+                        "dev")
+
                 save_path = os.path.join(args.save_checkpoint_dir, "step_" + str(steps))
                 fluid.io.save_persistables(exe, save_path, train_program)
                 train_pyreader.reset()

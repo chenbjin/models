@@ -18,7 +18,7 @@ train() {
         --save_checkpoint_dir ${CKPT_PATH} \
         --save_steps 200 \
         --validation_steps 200 \
-        --skip_steps 200 
+        --skip_steps 200
 }
 # run_eval on test.tsv
 evaluate() {
@@ -26,7 +26,7 @@ evaluate() {
         --use_cuda false \
         --do_val true \
         --batch_size 128 \
-        --init_checkpoint ${MODEL_PATH} 
+        --init_checkpoint ${MODEL_PATH}
 }
 # run_infer on infer.tsv
 infer() {
@@ -34,7 +34,7 @@ infer() {
         --use_cuda false \
         --do_infer true \
         --batch_size 32 \
-        --init_checkpoint ${MODEL_PATH} 
+        --init_checkpoint ${MODEL_PATH}
 }
 
 # run_save_inference_model
@@ -62,12 +62,12 @@ main() {
             save_inference_model "$@";
             ;;
         help)
-            echo "Usage: ${BASH_SOURCE} {train|eval|infer}";
+            echo "Usage: ${BASH_SOURCE} {train|eval|infer|save_inference_model}";
             return 0;
             ;;
         *)
             echo "unsupport command [${cmd}]";
-            echo "Usage: ${BASH_SOURCE} {train|eval|infer}";
+            echo "Usage: ${BASH_SOURCE} {train|eval|infer|save_inference_model}";
             return 1;
             ;;
     esac
