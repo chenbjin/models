@@ -1,4 +1,4 @@
-# Copyright (c) 2019 PaddlePaddle Authors. All Rights Reserved.
+#   Copyright (c) 2019 PaddlePaddle Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -95,8 +95,8 @@ def evaluate(exe, test_program, test_pyreader, fetch_list, eval_phase):
     while True:
         try:
             np_loss, np_acc, np_num_seqs = exe.run(program=test_program,
-                                                fetch_list=fetch_list,
-                                                return_numpy=False)
+                                                   fetch_list=fetch_list,
+                                                   return_numpy=False)
             np_loss = np.array(np_loss)
             np_acc = np.array(np_acc)
             np_num_seqs = np.array(np_num_seqs)
@@ -108,8 +108,8 @@ def evaluate(exe, test_program, test_pyreader, fetch_list, eval_phase):
             break
     time_end = time.time()
     print("[%s evaluation] avg loss: %f, avg acc: %f, elapsed time: %f s" %
-        (eval_phase, np.sum(total_cost) / np.sum(total_num_seqs),
-        np.sum(total_acc) / np.sum(total_num_seqs), time_end - time_begin))
+          (eval_phase, np.sum(total_cost) / np.sum(total_num_seqs),
+           np.sum(total_acc) / np.sum(total_num_seqs), time_end - time_begin))
 
 
 def infer(exe, infer_program, infer_pyreader, fetch_list, infer_phase):
@@ -118,10 +118,11 @@ def infer(exe, infer_program, infer_pyreader, fetch_list, infer_phase):
     while True:
         try:
             batch_probs = exe.run(program=infer_program,
-                            fetch_list=fetch_list,
-                            return_numpy=True)
+                                  fetch_list=fetch_list,
+                                  return_numpy=True)
             for probs in batch_probs[0]:
-                print("%d\t%f\t%f\t%f" % (np.argmax(probs), probs[0], probs[1], probs[2]))
+                print("%d\t%f\t%f\t%f" %
+                      (np.argmax(probs), probs[0], probs[1], probs[2]))
         except fluid.core.EOFException as e:
             infer_pyreader.reset()
             break
@@ -156,9 +157,7 @@ def main(args):
 
     if args.do_train:
         train_data_generator = processor.data_generator(
-            batch_size=args.batch_size,
-            phase='train',
-            epoch=args.epoch)
+            batch_size=args.batch_size, phase='train', epoch=args.epoch)
 
         num_train_examples = processor.get_num_examples(phase="train")
         max_train_steps = args.epoch * num_train_examples // args.batch_size + 1
@@ -185,7 +184,7 @@ def main(args):
             lower_mem, upper_mem, unit = fluid.contrib.memory_usage(
                 program=train_program, batch_size=args.batch_size)
             print("Theoretical memory usage in training: %.3f - %.3f %s" %
-                (lower_mem, upper_mem, unit))
+                  (lower_mem, upper_mem, unit))
 
     if args.do_val:
         if args.do_train:
@@ -230,17 +229,12 @@ def main(args):
     if args.do_train:
         if args.init_checkpoint:
             utils.init_checkpoint(
-                exe,
-                args.init_checkpoint,
-                main_program=startup_prog)
+                exe, args.init_checkpoint, main_program=startup_prog)
     elif args.do_val or args.do_infer:
         if not args.init_checkpoint:
             raise ValueError("args 'init_checkpoint' should be set if"
                              "only doing validation or infer!")
-        utils.init_checkpoint(
-            exe,
-            args.init_checkpoint,
-            main_program=test_prog)
+        utils.init_checkpoint(exe, args.init_checkpoint, main_program=test_prog)
 
     if args.do_train:
         train_exe = exe
@@ -281,17 +275,21 @@ def main(args):
                     total_num_seqs.extend(np_num_seqs)
 
                     if args.verbose:
-                        verbose = "train pyreader queue size: %d, " % train_pyreader.queue.size()
+                        verbose = "train pyreader queue size: %d, " % train_pyreader.queue.size(
+                        )
                         print(verbose)
 
                     time_end = time.time()
                     used_time = time_end - time_begin
                     print("step: %d, avg loss: %f, "
-                        "avg acc: %f, speed: %f steps/s" %
-                        (steps, np.sum(total_cost) / np.sum(total_num_seqs),
-                        np.sum(total_acc) / np.sum(total_num_seqs),
-                        args.skip_steps / used_time))
-                    ce_info.append([np.sum(total_cost) / np.sum(total_num_seqs), np.sum(total_acc) / np.sum(total_num_seqs), used_time])
+                          "avg acc: %f, speed: %f steps/s" %
+                          (steps, np.sum(total_cost) / np.sum(total_num_seqs),
+                           np.sum(total_acc) / np.sum(total_num_seqs),
+                           args.skip_steps / used_time))
+                    ce_info.append([
+                        np.sum(total_cost) / np.sum(total_num_seqs),
+                        np.sum(total_acc) / np.sum(total_num_seqs), used_time
+                    ])
                     total_cost, total_acc, total_num_seqs = [], [], []
                     time_begin = time.time()
 
@@ -303,8 +301,8 @@ def main(args):
                     # evaluate on dev set
                     if args.do_val:
                         evaluate(test_exe, test_prog, test_pyreader,
-                                [loss.name, accuracy.name, num_seqs.name],
-                                "dev")
+                                 [loss.name, accuracy.name, num_seqs.name],
+                                 "dev")
 
             except fluid.core.EOFException:
                 print("final step: %d " % steps)
@@ -330,24 +328,23 @@ def main(args):
         except:
             print("ce info error")
         print("kpis\teach_step_duration_%s_card%s\t%s" %
-                (task_name, card_num, ce_time))
-        print("kpis\ttrain_loss_%s_card%s\t%f" %
-            (task_name, card_num, ce_loss))
-        print("kpis\ttrain_acc_%s_card%s\t%f" %
-            (task_name, card_num, ce_acc))
+              (task_name, card_num, ce_time))
+        print("kpis\ttrain_loss_%s_card%s\t%f" % (task_name, card_num, ce_loss))
+        print("kpis\ttrain_acc_%s_card%s\t%f" % (task_name, card_num, ce_acc))
 
     # evaluate on test set
     if not args.do_train and args.do_val:
         print("Final test result:")
         evaluate(test_exe, test_prog, test_pyreader,
-                [loss.name, accuracy.name, num_seqs.name],
-                "test")
+                 [loss.name, accuracy.name, num_seqs.name],
+                 "test")
 
     # infer
     if args.do_infer:
         print("Final infer result:")
         infer(test_exe, test_prog, infer_pyreader,
-             [probs.name], "infer")
+             [probs.name], 
+             "infer")
 
 
 def get_cards():

@@ -1,4 +1,4 @@
-# Copyright (c) 2019 PaddlePaddle Authors. All Rights Reserved.
+#   Copyright (c) 2019 PaddlePaddle Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -88,12 +88,14 @@ def data_reader(file_path, word_dict, num_examples, phrase, epoch=1):
     num_examples[phrase] = len(all_data)
 
     if phrase == "infer":
+
         def reader():
             """
             Infer reader function
             """
             for wids in all_data:
                 yield wids
+
         return reader
 
     def reader():
@@ -105,6 +107,7 @@ def data_reader(file_path, word_dict, num_examples, phrase, epoch=1):
                 random.shuffle(all_data)
             for wids, label in all_data:
                 yield wids, label
+
     return reader
 
 
