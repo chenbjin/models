@@ -206,16 +206,6 @@ def gru_net(data,
 
 
 def textcnn_net(data,
-<<<<<<< HEAD
-            label,
-            dict_dim,
-            emb_dim=128,
-            hid_dim=128,
-            hid_dim2=96,
-            class_dim=2,
-            win_sizes=None,
-            is_prediction=False):
-=======
                 label,
                 dict_dim,
                 emb_dim=128,
@@ -223,8 +213,7 @@ def textcnn_net(data,
                 hid_dim2=96,
                 class_dim=2,
                 win_sizes=None,
-                is_infer=False):
->>>>>>> upstream/develop
+                is_prediction=False):
     """
     Textcnn_net
     """
