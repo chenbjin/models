@@ -53,7 +53,7 @@ python compress.py \
     -d "../../dataset/voc" \
     -o max_iters=258 \
     LearningRate.base_lr=0.0001 \
-    LearningRate.schedulers='[!PiecewiseDecay {gamma: 0.1, milestones: [258, 516]}]' \
+    LearningRate.schedulers="[!PiecewiseDecay {gamma: 0.1, milestones: [258, 516]}]" \
     pretrain_weights=https://paddlemodels.bj.bcebos.com/object_detection/yolov3_mobilenet_v1_voc.tar \
     YoloTrainFeed.batch_size=64
 ```
@@ -78,10 +78,10 @@ python compress.py \
     -d "../../dataset/voc" \
     -o max_iters=258 \
     LearningRate.base_lr=0.0001 \
-    LearningRate.schedulers='[!PiecewiseDecay {gamma: 0.1, milestones: [258, 516]}]' \
+    LearningRate.schedulers="[!PiecewiseDecay {gamma: 0.1, milestones: [258, 516]}]" \
     pretrain_weights=https://paddlemodels.bj.bcebos.com/object_detection/yolov3_mobilenet_v1_voc.tar \
     YoloTrainFeed.batch_size=64
-  
+
 ```
 
 以下为2卡训练示例，受显存所制，单卡`batch_size`不变, 总`batch_size`减小，`base_lr`减小，一个epoch内batch数量增加，同时需要调整学习率相关参数，如下：
@@ -93,7 +93,7 @@ python compress.py \
     -d "../../dataset/voc" \
     -o max_iters=516 \
     LearningRate.base_lr=0.00005 \
-    LearningRate.schedulers='[!PiecewiseDecay {gamma: 0.1, milestones: [516, 1012]}]' \
+    LearningRate.schedulers="[!PiecewiseDecay {gamma: 0.1, milestones: [516, 1012]}]" \
     pretrain_weights=https://paddlemodels.bj.bcebos.com/object_detection/yolov3_mobilenet_v1_voc.tar \
     YoloTrainFeed.batch_size=32
 ```
@@ -171,7 +171,7 @@ python ../eval.py \
     --model_name __model__ \
     --params_name __params__ \
     -c ../../configs/yolov3_mobilenet_v1_voc.yml \
-    -d "../../dataset/voc" 
+    -d "../../dataset/voc"
 ```
 
 在评估之后，选取效果最好的epoch的模型，可使用脚本 <a href='./freeze.py'>slim/quantization/freeze.py</a>将该模型转化为以上介绍的2种模型：FP32模型，int8模型，需要配置的参数为：
@@ -195,7 +195,7 @@ python freeze.py \
 运行命令为：
 ```
 python ../eval.py \
-    --model_path ${float_model_path} 
+    --model_path ${float_model_path}
     --model_name model \
     --params_name weights \
     -c ../../configs/yolov3_mobilenet_v1_voc.yml \
@@ -239,5 +239,3 @@ FP32模型可使用PaddleLite进行加载预测，可参见教程[Paddle-Lite如
 
 
 ## FAQ
-
-
